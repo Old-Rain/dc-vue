@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakcomply</title>
+    <script src="./src/dc-compile.js"></script>
+    <script src="./src/dc-vue.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      {{msg}}
+      <p v-text="msg" title="title"></p>
+      <div>
+        {{msg}}
+        <p v-html="msg2"></p>
+      </div>
+    </div>
+
+    <script>
+      new Vue({
+        el: '#app',
+        data: {
+          msg: 'hello world',
+          msg2: '<h3>hello world</h3>',
+        },
+      })
+    </script>
+  </body>
+</html>
