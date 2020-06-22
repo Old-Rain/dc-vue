@@ -48,11 +48,7 @@ class Compile {
 
   // 编译文本节点
   compileText(node) {
-    let mustach = /\{\{(.+)\}\}/
-    if (mustach.test(node.nodeValue)) {
-      let key = RegExp.$1
-      node.nodeValue = this.vm.$data[key]
-    }
+    CompileUtils.mustache(node, this.vm)
   }
 
   // 编译元素节点
@@ -64,14 +60,41 @@ class Compile {
       let expr = attr.value
 
       if (this.isDirective(attrName)) {
-        let directive = attrName.slice(2)
+        let type = attrName.slice(2)
 
-        if (directive === 'text') {
+        /**
+        // v-text
+        if (type === 'text') {
           node.innerText = this.vm.$data[expr]
         }
 
-        if (directive === 'html') {
+        // v-html
+        if (type === 'html') {
           node.innerHTML = this.vm.$data[expr]
+        }
+
+        // v-model
+        if (type === 'model') {
+          node.value = this.vm.$data[expr]
+        }
+
+        // v-on:[event]
+        if (this.isEvent(type)) {
+          const eventType = type.split(':')[1]
+          node.addEventListener(eventType, this.vm.$methods[expr].bind(this.vm))
+        }
+
+        ↓↓↓↓↓↓↓↓优化如下↓↓↓↓↓↓↓↓
+        */
+
+        if (this.isEvent(type)) {
+          // 处理事件
+
+          CompileUtils.bindEvent(node, type, this.vm, expr)
+        } else {
+          // 处理指令
+
+          CompileUtils[type] && CompileUtils[type](node, this.vm, expr)
         }
       }
     })
@@ -98,8 +121,58 @@ class Compile {
     return fragment
   }
 
-  // 属性是否是指令
+  // 指令
   isDirective(attrName) {
     return attrName.startsWith('v-')
   }
+
+  // 事件
+  isEvent(attrName) {
+    return attrName.split(':')[0] === 'on'
+  }
+}
+
+/**
+ * 编译工具
+ */
+let CompileUtils = {
+  // 绑定的值为对象中的属性
+  getVMValue(expr, vm) {
+    let value = vm.$data
+    expr.split('.').forEach((expr) => (value = value[expr]))
+    return value
+  },
+
+  // 插值表达式
+  mustache(node, vm) {
+    let mustache = /\{\{(.+)\}\}/
+    if (mustache.test(node.nodeValue)) {
+      let value = this.getVMValue(RegExp.$1, vm)
+      node.nodeValue = node.nodeValue.replace(mustache, value)
+    }
+  },
+
+  // v-text
+  text(node, vm, expr) {
+    node.innerText = this.getVMValue(expr, vm)
+  },
+
+  // v-html
+  html(node, vm, expr) {
+    node.innerHTML = this.getVMValue(expr, vm)
+  },
+
+  // v-model
+  model(node, vm, expr) {
+    node.value = this.getVMValue(expr, vm)
+  },
+
+  // v-on:[event]
+  bindEvent(node, type, vm, expr) {
+    const eventType = type.split(':')[1]
+    const fn = vm.$methods && vm.$methods[expr]
+
+    // 确保事件及方法都存在，避免js运行报错
+    if (eventType && fn) node.addEventListener(eventType, fn.bind(vm))
+  },
 }

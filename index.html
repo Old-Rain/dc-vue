@@ -12,17 +12,36 @@
       {{msg}}
       <p v-text="msg" title="title"></p>
       <div>
-        {{msg}}
+        大家好，我是-----{{vae}}
         <p v-html="msg2"></p>
+        <input type="text" v-model="msg" />
       </div>
+      <button v-on:click="clickFn">点我鸭</button>
+      <hr />
+      <p>
+        车的品牌{{car.brand}}
+        <br />
+        车的颜色<span v-html="car.color"></span>
+      </p>
     </div>
 
     <script>
       new Vue({
-        el: '#app',
+        // el: '#app',
+        el: document.querySelector('#app'),
         data: {
-          msg: 'hello world',
-          msg2: '<h3>hello world</h3>',
+          msg: '[hello world]',
+          msg2: '<h3>[你好，世界]</h3>',
+          vae: '[许嵩]',
+          car: {
+            brand: '[bmw]',
+            color: '[<span style="color: orange;">orange</span>]',
+          },
+        },
+        methods: {
+          clickFn() {
+            console.log(this.$data.msg)
+          },
         },
       })
     </script>
