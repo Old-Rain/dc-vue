@@ -7,6 +7,8 @@ class Vue {
     this.$data = data
     this.$methods = methods
 
+    new Observer(this.$data)
+
     new Compile(this.$el, this)
   }
 }

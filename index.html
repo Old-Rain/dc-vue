@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Breakcomply</title>
     <script src="./src/dc-compile.js"></script>
+    <script src="./src/dc-observer.js"></script>
     <script src="./src/dc-vue.js"></script>
   </head>
   <body>
@@ -26,7 +27,7 @@
     </div>
 
     <script>
-      new Vue({
+      const vm = new Vue({
         // el: '#app',
         el: document.querySelector('#app'),
         data: {

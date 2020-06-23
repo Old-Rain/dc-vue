@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakcomply</title>
+  </head>
+  <body>
+    <script>
+      let obj = {
+        name: 'zs',
+      }
+
+      /*
+      // Object.defineProperty(obj, prop, description) 对象，属性，描述符
+      Object.defineProperty(obj, 'name', {
+        configurable: false, // 为true时，该属性才能被删除，默认true
+        enumerable: false, // 为true时，该属性才能被遍历，默认true
+        writable: false, // 为true时，该属性才能被赋值运算符赋值，默认true
+        value: 'ls', // 默认值，默认undefined
+      })
+
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          console.log(key)
+        }
+			}
+			*/
+
+      let temp = obj.name
+      Object.defineProperty(obj, 'name', {
+        // 属性的 getter 函数
+        get() {
+          // 每次读取该属性，都会被getter劫持到
+          console.log('get 执行了')
+
+          // 该函数的返回值会被用作属性的值(将temp与obj.name建立起双向绑定)
+          return temp
+        },
+
+        // 属性的 setter 函数
+        set(newValue) {
+          // 每次设置该属性，都会被setter劫持到
+          // 设置的值即newValue，也会被劫持到
+          console.log('set 执行了', newValue)
+
+          // getter函数中已经将temp与obj.name建立了双向绑定，所以每次temp每次被赋值,obj.name也会发生改变
+          temp = newValue
+        },
+      })
+    </script>
+  </body>
+</html>
