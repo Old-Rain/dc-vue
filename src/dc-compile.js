@@ -138,39 +138,87 @@ class Compile {
 let CompileUtils = {
   // 绑定的值为对象中的属性
   getVMValue(expr, vm) {
-    let value = vm.$data
-    expr.split('.').forEach((expr) => (value = value[expr]))
-    return value
+    let data = vm.$data
+    expr.split('.').forEach((expr) => (data = data[expr]))
+    return data
+  },
+
+  // 设置v-module绑定的值
+  setVMValue(vm, expr, value) {
+    let data = vm.$data
+    let exprList = expr.split('.')
+    exprList.forEach((key, i) => {
+      if (i < exprList.length - 1) {
+        // 如果没有遍历到最后一个属性，不断更新对象
+
+        data = data[key]
+      } else {
+        // 最后一个则是需要被更新的属性
+
+        data[key] = value
+      }
+    })
   },
 
   // 插值表达式
   mustache(node, vm) {
-    let mustache = /\{\{(.+)\}\}/
-    if (mustache.test(node.nodeValue)) {
-      let value = this.getVMValue(RegExp.$1, vm)
-      node.nodeValue = node.nodeValue.replace(mustache, value)
+    let reg = /\{\{(.+)\}\}/
+    let txt = node.nodeValue // 存储初始文本，之后的更新依然可以从初始文本中根据正则替换
+
+    if (reg.test(txt)) {
+      let expr = RegExp.$1
+      let value = this.getVMValue(expr, vm)
+
+      node.nodeValue = txt.replace(reg, value)
+
+      // 每解析到一个指令，添加一个订阅者
+      new Watcher(vm, expr, (oldValue, newValue) => {
+        if (oldValue !== newValue) node.nodeValue = txt.replace(reg, newValue)
+      })
     }
   },
 
   // v-text
   text(node, vm, expr) {
     node.innerText = this.getVMValue(expr, vm)
+
+    // 每解析到一个指令，添加一个订阅者
+    new Watcher(vm, expr, (oldValue, newValue) => {
+      if (oldValue !== newValue) node.innerText = newValue
+    })
   },
 
   // v-html
   html(node, vm, expr) {
     node.innerHTML = this.getVMValue(expr, vm)
+
+    // 每解析到一个指令，添加一个订阅者
+    new Watcher(vm, expr, (oldValue, newValue) => {
+      if (oldValue !== newValue) node.innerHTML = newValue
+    })
   },
 
   // v-model
   model(node, vm, expr) {
     node.value = this.getVMValue(expr, vm)
+
+    // 每解析到一个指令，添加一个订阅者
+    new Watcher(vm, expr, (oldValue, newValue) => {
+      if (oldValue !== newValue) node.value = newValue
+    })
+
+    // 注册事件实现双向绑定
+    let that = this
+    node.addEventListener('input', function () {
+      that.setVMValue(vm, expr, this.value)
+    })
   },
 
   // v-on:[event]
   bindEvent(node, type, vm, expr) {
     const eventType = type.split(':')[1]
-    const fn = vm.$methods && vm.$methods[expr]
+    // const fn = vm.$methods && vm.$methods[expr]
+    const fn = vm[expr] && vm[expr]
 
     // 确保事件及方法都存在，避免js运行报错
     if (eventType && fn) node.addEventListener(eventType, fn.bind(vm))

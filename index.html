@@ -4,23 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Breakcomply</title>
+    <script src="./src/dc-watcher.js"></script>
     <script src="./src/dc-compile.js"></script>
     <script src="./src/dc-observer.js"></script>
     <script src="./src/dc-vue.js"></script>
   </head>
   <body>
     <div id="app">
-      {{msg}}
-      <p v-text="msg" title="title"></p>
+      插值表达式-msg-----{{msg}}
+      <br /><br />
+
+      v-text-msg
+      <span v-text="msg" title="title"></span>
+      <br /><br />
+
       <div>
-        大家好，我是-----{{vae}}
-        <p v-html="msg2"></p>
-        <input type="text" v-model="msg" />
+        vae-大家好，我是-----{{vae}}
+        <br /><br />
+
+        v-html-msg2
+        <span v-html="msg2"></span>
+        <br /><br />
+
+        v-module-vae
+        <input type="text" v-model="vae" />
       </div>
+      <br /><br />
+
+      v-on
       <button v-on:click="clickFn">点我鸭</button>
       <hr />
       <p>
         车的品牌{{car.brand}}
+        <input type="text" v-model="car.brand" />
         <br />
         车的颜色<span v-html="car.color"></span>
       </p>
@@ -32,7 +48,7 @@
         el: document.querySelector('#app'),
         data: {
           msg: '[hello world]',
-          msg2: '<h3>[你好，世界]</h3>',
+          msg2: '<span style="color: red;">你好世界</span>',
           vae: '[许嵩]',
           car: {
             brand: '[bmw]',
@@ -42,6 +58,7 @@
         methods: {
           clickFn() {
             console.log(this.$data.msg)
+            this.vae = 'vae'
           },
         },
       })
