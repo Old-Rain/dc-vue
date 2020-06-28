@@ -11,9 +11,9 @@ class Vue {
     this.proxy(this.$data)
     this.proxy(this.$methods)
 
-    new Observer(this.$data)
+    this.$observer = new Observer(this.$data)
 
-    new Compile(this.$el, this)
+    this.$compile = new Compiler(this.$el, this)
   }
 
   // 代理

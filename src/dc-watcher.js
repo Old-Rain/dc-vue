@@ -26,6 +26,7 @@ class Watcher {
     let oldValue = this.oldValue
     let newValue = this.getVMValue(this.expr, this.vm)
     this.cb(oldValue, newValue)
+    this.oldValue = newValue
   }
 
   /**
@@ -33,25 +34,26 @@ class Watcher {
    */
   getVMValue(expr, vm) {
     let value = vm.$data
-    expr.split('.').forEach((expr) => (value = value[expr]))
+    expr.split('.').forEach((key) => (value = value[key]))
     return value
   }
 }
 
 class Dependence {
-  constructor() {
-    this.subscribe = [] // 订阅者数组
+  constructor(prop) {
+    this.prop = prop
+    this.subscribes = [] // 订阅者数组
   }
 
   // 添加订阅者
   addSubscribe(watcher) {
-    this.subscribe.push(watcher)
+    this.subscribes.push(watcher)
   }
 
   // 通知订阅者
   notify() {
     // debugger
-    this.subscribe.forEach((watcher) => {
+    this.subscribes.forEach((watcher) => {
       watcher.update()
     })
   }

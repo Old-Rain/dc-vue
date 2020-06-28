@@ -2,7 +2,7 @@
  * 编译模板
  */
 
-class Compile {
+class Compiler {
   constructor(el, vm) {
     this.el = typeof el === 'string' ? document.querySelector(el) : el // el可以是id 或者 document对象
     this.vm = vm
@@ -56,8 +56,7 @@ class Compile {
     let attributes = this.toArray(node.attributes)
     attributes.forEach((attr) => {
       // console.dir(attr)
-      let attrName = attr.name
-      let expr = attr.value
+      const { name: attrName, value: expr } = attr
 
       if (this.isDirective(attrName)) {
         let type = attrName.slice(2)
@@ -139,7 +138,7 @@ let CompileUtils = {
   // 绑定的值为对象中的属性
   getVMValue(expr, vm) {
     let data = vm.$data
-    expr.split('.').forEach((expr) => (data = data[expr]))
+    expr.split('.').forEach((key) => (data = data[key]))
     return data
   },
 
@@ -161,19 +160,19 @@ let CompileUtils = {
   },
 
   // 插值表达式
+  mustacheReg: /\{\{(.+)\}\}/,
   mustache(node, vm) {
-    let reg = /\{\{(.+)\}\}/
     let txt = node.nodeValue // 存储初始文本，之后的更新依然可以从初始文本中根据正则替换
 
-    if (reg.test(txt)) {
+    if (this.mustacheReg.test(txt)) {
       let expr = RegExp.$1
       let value = this.getVMValue(expr, vm)
 
-      node.nodeValue = txt.replace(reg, value)
+      node.nodeValue = txt.replace(this.mustacheReg, value)
 
       // 每解析到一个指令，添加一个订阅者
       new Watcher(vm, expr, (oldValue, newValue) => {
-        if (oldValue !== newValue) node.nodeValue = txt.replace(reg, newValue)
+        if (oldValue !== newValue) node.nodeValue = txt.replace(this.mustacheReg, newValue)
       })
     }
   },

@@ -5,6 +5,8 @@
 class Observer {
   constructor(data) {
     this.data = data
+    this.dependences = []
+
     this.walk(data)
   }
 
@@ -24,7 +26,23 @@ class Observer {
   // 定义响应式的数据
   defineReactive(obj, prop, value) {
     // 每一个属性，依赖（dependence）一个发布者
-    let dependence = new Dependence()
+    // dependence = new Dependence()
+    /**
+     * 属性值为对象时递归劫持，但是Dependence.target已经为null
+     * 所以会导致new出来dependence的subscribes为空数组（没有订阅者）
+     * 下次为该对象属性的某属性赋值时无法更新视图
+     *
+     * 所以，dependence每次先从初始化存储的里面找
+     * 如果找不到，说明正在初始化，则new一个dependence
+     */
+    let dependence = this.dependences.find((dependence) => {
+      return dependence.prop === prop
+    })
+
+    if (!dependence) {
+      dependence = new Dependence(prop)
+      this.dependences.push(dependence)
+    }
 
     Object.defineProperty(obj, prop, {
       get: () => {
@@ -37,7 +55,10 @@ class Observer {
          * 在getter中执行dependence.addSubscribe()，将每个指令的订阅者（watcher）添加到dependence的发布者数组（subscribe）
          * 最后将Dependence.target清空，使初始化完成之后，触发getter函数时不会再执行addSubscribe
          */
-        Dependence.target && dependence.addSubscribe(Dependence.target)
+        let target = Dependence.target
+        if (target) {
+          dependence.addSubscribe(target)
+        }
 
         return value
       },
